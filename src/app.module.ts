@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './common/config/configuration';
 import { validation } from './common/config/validation';
 import { HealthModule } from './health/health.module';
-import { ListingModule } from './listing/listing.module';
+import { EventModule } from './event/event.module';
 import { RabbitMQWrapperModule } from './rabbitmq-wrapper/rabbitmq-wrapper.module';
 import { WebsocketModule } from './websocket/websocket.module';
 
@@ -18,7 +18,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     RabbitMQWrapperModule,
     WebsocketModule,
     HealthModule,
-    ListingModule,
+    EventModule,
   ],
 })
 export class AppModule {}

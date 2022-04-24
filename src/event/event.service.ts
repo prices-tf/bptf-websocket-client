@@ -3,7 +3,7 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { WebsocketService } from '../websocket/websocket.service';
 
 @Injectable()
-export class ListingService implements OnModuleDestroy {
+export class EventService implements OnModuleDestroy {
   private listener;
 
   constructor(
