@@ -11,7 +11,7 @@ import { WebsocketService } from '../websocket/websocket.service';
 export class EventService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger(EventService.name);
   private listener;
-  private events: number;
+  private events = 0;
   private interval: NodeJS.Timer;
 
   constructor(
