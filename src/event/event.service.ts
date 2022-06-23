@@ -29,7 +29,7 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     this.interval = setInterval(() => {
-      this.logger.verbose('Events: ' + this.events);
+      this.logger.log('Events: ' + this.events);
       this.events = 0;
     }, 1000);
   }
