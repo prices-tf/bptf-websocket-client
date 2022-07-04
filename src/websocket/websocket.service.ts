@@ -68,7 +68,20 @@ export class WebsocketService
     this.ws.removeEventListener('message', callback);
   }
 
+  reconnect(): void {
+    this.ws.reconnect();
+  }
+
   isConnected() {
     return this.ws.readyState === ReconnectingWebSocket.OPEN;
+  }
+
+  isConnecting() {
+    return (
+      // Websocket is connecting
+      this.ws.readyState === ReconnectingWebSocket.CONNECTING ||
+      // or websocket is closed but retrying to connect
+      this.ws.retryCount > 0
+    );
   }
 }

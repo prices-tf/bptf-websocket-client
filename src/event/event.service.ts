@@ -30,6 +30,12 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     this.interval = setInterval(() => {
       this.logger.log('Events: ' + this.events);
+
+      if (this.events === 0 && !this.websocketService.isConnecting()) {
+        this.logger.warn('No events received, reconnecting...');
+        this.websocketService.reconnect();
+      }
+
       this.events = 0;
     }, 1000);
   }
