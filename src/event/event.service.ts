@@ -51,11 +51,7 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   @OnEvent('event.created')
   handleEventCreated(event: EventCreatedEvent) {
     this.events++;
-    this.amqpConnection.publish(
-      'bptf-event.created',
-      event.type,
-      event.payload,
-    );
+    this.amqpConnection.publish('bptf-event.created', event.type, event);
   }
 
   onModuleDestroy() {
