@@ -4,9 +4,11 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import WS from 'ws';
+import { Config } from '../common/config/configuration';
 import { EventCreatedEvent } from './events/event-created.event';
 
 @Injectable()
@@ -25,12 +27,15 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
     );
   };
 
-  constructor(private eventEmitter: EventEmitter2) {
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private configService: ConfigService<Config>,
+  ) {
     this.primaryWs = this.createWebsocket();
 
     this.reconnectInterval = setInterval(() => {
       this.reconnect();
-    }, 5 * 60 * 1000);
+    }, this.configService.get('reconnectInterval'));
   }
 
   private createWebsocket(): ReconnectingWebSocket {
