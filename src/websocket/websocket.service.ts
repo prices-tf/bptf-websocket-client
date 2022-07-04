@@ -13,7 +13,6 @@ export class WebsocketService
 {
   private readonly logger = new Logger(WebsocketService.name);
   private ws: ReconnectingWebSocket;
-  private stopping = false;
 
   constructor() {
     this.ws = new ReconnectingWebSocket('wss://ws.backpack.tf/events', [], {
@@ -27,9 +26,7 @@ export class WebsocketService
     });
 
     this.ws.addEventListener('close', () => {
-      if (!this.stopping) {
-        this.logger.warn('Disconnected from websocket');
-      }
+      this.logger.warn('Disconnected from websocket');
     });
   }
 
@@ -45,8 +42,6 @@ export class WebsocketService
   }
 
   beforeApplicationShutdown(): Promise<void> {
-    this.stopping = true;
-
     return new Promise((resolve) => {
       if (this.ws.readyState === ReconnectingWebSocket.CLOSED) {
         resolve();
