@@ -6,7 +6,12 @@ describe('WebsocketService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [WebsocketService],
+      providers: [
+        {
+          provide: WebsocketService,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     service = module.get<WebsocketService>(WebsocketService);
