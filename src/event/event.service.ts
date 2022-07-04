@@ -5,7 +5,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { OnEvent } from '@nestjs/event-emitter';
 import { EventCreatedEvent } from '../websocket/events/event-created.event';
 import { WebsocketService } from '../websocket/websocket.service';
 
@@ -19,7 +19,6 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly amqpConnection: AmqpConnection,
     private readonly websocketService: WebsocketService,
-    private eventEmitter: EventEmitter2,
   ) {}
 
   onModuleInit() {
