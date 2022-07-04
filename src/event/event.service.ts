@@ -13,6 +13,7 @@ import { WebsocketService } from '../websocket/websocket.service';
 export class EventService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger(EventService.name);
   private events = 0;
+  private noEventsCount = 0;
   private interval: NodeJS.Timer;
 
   constructor(
@@ -25,7 +26,14 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
     this.interval = setInterval(() => {
       this.logger.log('Events: ' + this.events);
 
-      if (this.events === 0 && !this.websocketService.isConnecting()) {
+      if (this.events === 0) {
+        this.noEventsCount++;
+      } else {
+        this.noEventsCount = 0;
+      }
+
+      if (this.noEventsCount >= 5 && !this.websocketService.isConnecting()) {
+        this.noEventsCount = 0;
         this.logger.warn('No events received, reconnecting...');
         this.websocketService.reconnect();
       }
