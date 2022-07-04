@@ -13,7 +13,7 @@ import { EventCreatedEvent } from './events/event-created.event';
 export class WebsocketService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WebsocketService.name);
   private primaryWs: ReconnectingWebSocket;
-  private secondaryWs: ReconnectingWebSocket | null;
+  private secondaryWs: ReconnectingWebSocket | null = null;
   private reconnectInterval: NodeJS.Timer;
 
   private listener = (message: MessageEvent<string>) => {
