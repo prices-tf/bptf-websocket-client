@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module';
 import { EventModule } from './event/event.module';
 import { RabbitMQWrapperModule } from './rabbitmq-wrapper/rabbitmq-wrapper.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -15,10 +16,11 @@ import { WebsocketModule } from './websocket/websocket.module';
       load: [configuration],
       validationSchema: validation,
     }),
-    RabbitMQWrapperModule,
+    EventEmitterModule.forRoot(),
     WebsocketModule,
-    HealthModule,
     EventModule,
+    HealthModule,
+    RabbitMQWrapperModule,
   ],
 })
 export class AppModule {}

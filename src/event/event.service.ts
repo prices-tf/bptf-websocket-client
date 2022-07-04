@@ -5,27 +5,21 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventCreatedEvent } from '../websocket/events/event-created.event';
 import { WebsocketService } from '../websocket/websocket.service';
 
 @Injectable()
 export class EventService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger(EventService.name);
-  private listener;
   private events = 0;
   private interval: NodeJS.Timer;
 
   constructor(
     private readonly amqpConnection: AmqpConnection,
     private readonly websocketService: WebsocketService,
-  ) {
-    this.listener = (event) => {
-      this.events++;
-      const data = JSON.parse(event.data);
-      this.amqpConnection.publish('bptf-event.created', data.event, data);
-    };
-
-    this.websocketService.listen(this.listener);
-  }
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   onModuleInit() {
     this.interval = setInterval(() => {
@@ -40,8 +34,17 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
     }, 1000);
   }
 
+  @OnEvent('event.created')
+  handleEventCreated(event: EventCreatedEvent) {
+    this.events++;
+    this.amqpConnection.publish(
+      'bptf-event.created',
+      event.type,
+      event.payload,
+    );
+  }
+
   onModuleDestroy() {
     clearInterval(this.interval);
-    this.websocketService.ignore(this.listener);
   }
 }
