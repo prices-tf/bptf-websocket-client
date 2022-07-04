@@ -1,4 +1,5 @@
 export interface Config {
+  noEventsReconnectTimeout: number;
   port: number;
   rabbitmq: RabbitMQConfig;
 }
@@ -17,6 +18,7 @@ export default (): Config => {
       process.env.NODE_ENV === 'production'
         ? 3000
         : parseInt(process.env.PORT, 10),
+    noEventsReconnectTimeout: parseInt(process.env.NO_EVENTS_RECONNECT_TIMEOUT),
     rabbitmq: {
       host: process.env.RABBITMQ_HOST,
       port: parseInt(process.env.RABBITMQ_PORT, 10),

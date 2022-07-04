@@ -5,7 +5,9 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Config } from '../common/config/configuration';
 import { EventCreatedEvent } from '../websocket/events/event-created.event';
 import { WebsocketService } from '../websocket/websocket.service';
 
@@ -19,6 +21,7 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly amqpConnection: AmqpConnection,
     private readonly websocketService: WebsocketService,
+    private readonly configService: ConfigService<Config>,
   ) {}
 
   onModuleInit() {
@@ -31,7 +34,11 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
         this.noEventsCount = 0;
       }
 
-      if (this.noEventsCount >= 5 && !this.websocketService.isConnecting()) {
+      if (
+        this.noEventsCount >=
+          this.configService.get('noEventsReconnectTimeout') &&
+        !this.websocketService.isConnecting()
+      ) {
         this.noEventsCount = 0;
         this.logger.warn('No events received, reconnecting...');
         this.websocketService.reconnect();
