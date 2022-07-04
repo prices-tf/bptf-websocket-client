@@ -14,9 +14,23 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WebsocketService.name);
   private primaryWs: ReconnectingWebSocket;
   private secondaryWs: ReconnectingWebSocket | null;
+  private reconnectInterval: NodeJS.Timer;
+
+  private listener = (message: MessageEvent<string>) => {
+    const data = JSON.parse(message.data);
+
+    this.eventEmitter.emit(
+      'event.created',
+      new EventCreatedEvent(data.id, data.event, data.payload),
+    );
+  };
 
   constructor(private eventEmitter: EventEmitter2) {
     this.primaryWs = this.createWebsocket();
+
+    this.reconnectInterval = setInterval(() => {
+      this.reconnect();
+    }, 5 * 60 * 1000);
   }
 
   private createWebsocket(): ReconnectingWebSocket {
@@ -26,15 +40,7 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
       startClosed: true,
     });
 
-    // TODO: Deduplicate messages
-    ws.addEventListener('message', (message: MessageEvent<string>) => {
-      const data = JSON.parse(message.data);
-
-      this.eventEmitter.emit(
-        'event.created',
-        new EventCreatedEvent(data.id, data.event, data.payload),
-      );
-    });
+    ws.addEventListener('message', this.listener);
 
     ws.addEventListener('open', () => {
       this.logger.log('Connected to websocket');
@@ -49,6 +55,8 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
 
   private closeWebsocket(ws: ReconnectingWebSocket): Promise<void> {
     return new Promise((resolve) => {
+      ws.removeEventListener('message', this.listener);
+
       if (ws.readyState === ReconnectingWebSocket.CLOSED) {
         resolve();
       } else {
@@ -76,16 +84,12 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): Promise<void> {
     this.logger.log('Connecting to websocket...');
-    return new Promise((resolve) => {
-      this.primaryWs.onopen = () => {
-        resolve();
-        this.primaryWs.onopen = undefined;
-      };
-      this.primaryWs.reconnect();
-    });
+    return this.waitForWebsocketOpen(this.primaryWs);
   }
 
   async onModuleDestroy(): Promise<void> {
+    clearInterval(this.reconnectInterval);
+
     const promises = [this.closeWebsocket(this.primaryWs)];
     if (this.secondaryWs) {
       promises.push(this.closeWebsocket(this.secondaryWs));
@@ -103,9 +107,7 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
     // Wait for websocket to connect
     await this.waitForWebsocketOpen(this.secondaryWs);
 
-    this.logger.log(
-      'Connected using new connection, closing old connection...',
-    );
+    this.logger.log('New connection open, closing old connection...');
 
     const temp = this.primaryWs;
     // Set new websocket as primary
