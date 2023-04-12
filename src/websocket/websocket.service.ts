@@ -11,6 +11,25 @@ import WS from 'ws';
 import { Config } from '../common/config/configuration';
 import { EventCreatedEvent } from './events/event-created.event';
 
+class CustomWS extends WS {
+  constructor(
+    url: string,
+    protocols?: string | string[],
+    options?: WS.ClientOptions,
+  ) {
+    const newOptions = options ?? {};
+    const headers = newOptions.headers || {};
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    headers['batch-test'] = true;
+    headers['User-Agent'] = 'bptf-websocket-client (prices-tf)';
+
+    newOptions.headers = headers;
+
+    super(url, protocols, newOptions);
+  }
+}
+
 @Injectable()
 export class WebsocketService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WebsocketService.name);
@@ -21,11 +40,19 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
   private listener = (message: MessageEvent<string>) => {
     const data = JSON.parse(message.data);
 
+    if (Array.isArray(data)) {
+      data.forEach(this.handleEvent.bind(this));
+    } else {
+      this.handleEvent(data);
+    }
+  };
+
+  private handleEvent(data: any) {
     this.eventEmitter.emit(
       'event.created',
       new EventCreatedEvent(data.id, data.event, data.payload),
     );
-  };
+  }
 
   constructor(
     private eventEmitter: EventEmitter2,
@@ -40,7 +67,7 @@ export class WebsocketService implements OnModuleInit, OnModuleDestroy {
 
   private createWebsocket(): ReconnectingWebSocket {
     const ws = new ReconnectingWebSocket('wss://ws.backpack.tf/events', [], {
-      WebSocket: WS,
+      WebSocket: CustomWS,
       maxEnqueuedMessages: 0,
       startClosed: true,
     });
